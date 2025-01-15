@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from twilio.rest import Client
 from django.db import transaction
-# from send_bulk_sms.tasks import send_sms_task
+from send_bulk_sms.tasks import send_sms_task
 
 class SmsConfigurationView(APIView):
     def post(self, request):
@@ -39,97 +39,97 @@ class SmsConfigurationView(APIView):
         
 
 
-class SmsComposeView(APIView):
-    def post(self, request):
-        print("Printing something")
-        print(request.data)
-        data = request.data
-        body = data.get("body")
-        config_id = data.get("config_id")
-        recipients = data.get("recipients", None)
+# class SmsComposeView(APIView):
+#     def post(self, request):
+#         print("Printing something")
+#         print(request.data)
+#         data = request.data
+#         body = data.get("body")
+#         config_id = data.get("config_id")
+#         recipients = data.get("recipients", None)
 
-        print("data",data)
-        # return Response("Ok")
-        if not isinstance(recipients,list) or not recipients:
-            return Response({
-               "status": "failed",
-                "message": "Recipients must be a non-empty list."
-            },status=status.HTTP_400_BAD_REQUEST)
+#         print("data",data)
+#         # return Response("Ok")
+#         if not isinstance(recipients,list) or not recipients:
+#             return Response({
+#                "status": "failed",
+#                 "message": "Recipients must be a non-empty list."
+#             },status=status.HTTP_400_BAD_REQUEST)
         
         
-        try:
-            sms_config=SmsConfiguration.objects.get(id=config_id)
-        except SmsConfiguration.DoesNotExist:
-            return Response({
-                'status':"failed",
-                "message":"Invalid Sms configaration id"
-            },status=status.HTTP_404_NOT_FOUND)
+#         try:
+#             sms_config=SmsConfiguration.objects.get(id=config_id)
+#         except SmsConfiguration.DoesNotExist:
+#             return Response({
+#                 'status':"failed",
+#                 "message":"Invalid Sms configaration id"
+#             },status=status.HTTP_404_NOT_FOUND)
         
-        sms_compose = SmsCompose.objects.create(
-            body=body,
-            sms_configuration=sms_config,
-            recipient_number=", ".join(recipients)
-        )
-        client = Client(sms_config.account_sid, sms_config.auth_token)
+#         sms_compose = SmsCompose.objects.create(
+#             body=body,
+#             sms_configuration=sms_config,
+#             recipient_number=", ".join(recipients)
+#         )
+#         client = Client(sms_config.account_sid, sms_config.auth_token)
 
-        response_data = []
+#         response_data = []
 
-        for recipient_number in recipients:
-            try:
-                # Send SMS using Twilio
-                message = client.messages.create(
-                    body=body,
-                    from_=sms_config.sender_number,
-                    to=recipient_number
-                )
+#         for recipient_number in recipients:
+#             try:
+#                 # Send SMS using Twilio
+#                 message = client.messages.create(
+#                     body=body,
+#                     from_=sms_config.sender_number,
+#                     to=recipient_number
+#                 )
 
-                recipient = Recipients.objects.create(
-                    phone_number=recipient_number,
-                    sms_compose=sms_compose,
-                    status='success',
-                    failed_reason="None"
-                )
+#                 recipient = Recipients.objects.create(
+#                     phone_number=recipient_number,
+#                     sms_compose=sms_compose,
+#                     status='success',
+#                     failed_reason="None"
+#                 )
 
-                SandBox.objects.create(
-                    sms_compose=sms_compose,
-                    sender_number=sms_config.sender_number,
-                    recipient_number=recipient_number
-                )
+#                 SandBox.objects.create(
+#                     sms_compose=sms_compose,
+#                     sender_number=sms_config.sender_number,
+#                     recipient_number=recipient_number
+#                 )
 
-                response_data.append({
-                    "recipient_number": recipient_number,
-                    "status": "success",
-                    "sid": message.sid
-                })
+#                 response_data.append({
+#                     "recipient_number": recipient_number,
+#                     "status": "success",
+#                     "sid": message.sid
+#                 })
 
-            except Exception as e:
-                Recipients.objects.create(
-                    phone_number=recipient_number,
-                    sms_compose=sms_compose,
-                    status='failed',
-                    failed_reason=str(e)
-                )
+#             except Exception as e:
+#                 Recipients.objects.create(
+#                     phone_number=recipient_number,
+#                     sms_compose=sms_compose,
+#                     status='failed',
+#                     failed_reason=str(e)
+#                 )
 
-                response_data.append({
-                    "recipient_number": recipient_number,
-                    "status": "failed",
-                    "reason": str(e)
-                })
+#                 response_data.append({
+#                     "recipient_number": recipient_number,
+#                     "status": "failed",
+#                     "reason": str(e)
+#                 })
 
-        return Response({
-            "status": "completed",
-            "sms_compose_id": sms_compose.id,
-            "recipients": response_data
-        }, status=status.HTTP_201_CREATED)
+#         return Response({
+#             "status": "completed",
+#             "sms_compose_id": sms_compose.id,
+#             "recipients": response_data
+#         }, status=status.HTTP_201_CREATED)
     
     
-    def get(self, request):
-        sms_compose = SmsCompose.objects.all()
-        serializer_data = SmsComposeSerializerForView(sms_compose, many=True).data
-        return Response({
-            "status": "success",
-            "details": serializer_data  
-        },status=status.HTTP_200_OK)
+#     def get(self, request):
+#         sms_compose = SmsCompose.objects.all()
+#         serializer_data = SmsComposeSerializerForView(sms_compose, many=True).data
+#         return Response({
+#             "status": "success",
+#             "details": serializer_data  
+#         },status=status.HTTP_200_OK)
         
 
 class SandboxView(APIView):
@@ -153,54 +153,54 @@ class RecipentsView(APIView):
 
 
 
-# class SmsComposeView(APIView):
-#     def post(self, request):
-#         data = request.data
-#         body = data.get("body")
-#         config_id = data.get("config_id")
-#         recipients = data.get("recipients", None)
+class SmsComposeView(APIView):
+    def post(self, request):
+        data = request.data
+        body = data.get("body")
+        config_id = data.get("config_id")
+        recipients = data.get("recipients", None)
 
-#         if not isinstance(recipients, list) or not recipients:
-#             return Response({
-#                 "status": "failed",
-#                 "message": "Recipients must be a non-empty list."
-#             }, status=status.HTTP_400_BAD_REQUEST)
+        if not isinstance(recipients, list) or not recipients:
+            return Response({
+                "status": "failed",
+                "message": "Recipients must be a non-empty list."
+            }, status=status.HTTP_400_BAD_REQUEST)
 
-#         try:
-#             sms_config = SmsConfiguration.objects.get(id=config_id)
-#         except SmsConfiguration.DoesNotExist:
-#             return Response({
-#                 "status": "failed",
-#                 "message": "Invalid SMS configuration ID."
-#             }, status=status.HTTP_404_NOT_FOUND)
+        try:
+            sms_config = SmsConfiguration.objects.get(id=config_id)
+        except SmsConfiguration.DoesNotExist:
+            return Response({
+                "status": "failed",
+                "message": "Invalid SMS configuration ID."
+            }, status=status.HTTP_404_NOT_FOUND)
 
-#         # Create SmsCompose object
-#         sms_compose = SmsCompose.objects.create(
-#             body=body,
-#             sms_configuration=sms_config,
-#             recipient_number=", ".join(recipients)
-#         )
+        # Create SmsCompose object
+        sms_compose = SmsCompose.objects.create(
+            body=body,
+            sms_configuration=sms_config,
+            recipient_number=", ".join(recipients)
+        )
 
-#         # Asynchronously send SMS to each recipient
-#         for recipient_number in recipients:
-#             send_sms_task.delay(
-#                 body=body,
-#                 sender_number=sms_config.sender_number,
-#                 recipient_number=recipient_number,
-#                 sms_compose_id=sms_compose.id,
-#                 config_id=sms_config.id
-#             )
+        # Asynchronously send SMS to each recipient
+        for recipient_number in recipients:
+            send_sms_task.delay(
+                body=body,
+                sender_number=sms_config.sender_number,
+                recipient_number=recipient_number,
+                sms_compose_id=sms_compose.id,
+                config_id=sms_config.id
+            )
 
-#         return Response({
-#             "status": "processing",
-#             "sms_compose_id": sms_compose.id,
-#             "message": "SMS sending tasks have been queued."
-#         }, status=status.HTTP_202_ACCEPTED)
+        return Response({
+            "status": "processing",
+            "sms_compose_id": sms_compose.id,
+            "message": "SMS sending tasks have been queued."
+        }, status=status.HTTP_202_ACCEPTED)
 
-#     def get(self, request):
-#         sms_compose = SmsCompose.objects.all()
-#         serializer_data = SmsComposeSerializerForView(sms_compose, many=True).data
-#         return Response({
-#             "status": "success",
-#             "details": serializer_data
-#         }, status=status.HTTP_200_OK)
+    def get(self, request):
+        sms_compose = SmsCompose.objects.all()
+        serializer_data = SmsComposeSerializerForView(sms_compose, many=True).data
+        return Response({
+            "status": "success",
+            "details": serializer_data
+        }, status=status.HTTP_200_OK)

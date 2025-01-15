@@ -10,14 +10,13 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+import environ
+env = environ.Env()
+environ.Env.read_env()
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-
-import environ
-env = environ.Env()
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -112,19 +111,18 @@ AUTH_PASSWORD_VALIDATORS = [
 
 SECRET_KEY = env("SECRET_KEY")
 
-ACCOUNT_SID = env("Account_SID")
-AUTH_TOKEN = env("Auth_Token")
-SENDER_NUMBER = env("Sender_Number")
+ACCOUNT_SID = env("ACCOUNT_SID")
+AUTH_TOKEN = env("AUTH_TOKEN")
+SENDER_NUMBER = env("SENDER_NUMBER")
 
-
-# # CELERY SETTINGS
-# CELERY_BROKER_URL = 'redis://127.0.0.1:6379'
-# CELERY_ACCEPT_CONTENT = ['application/json']
-# CELERY_RESULT_SERIALIZER = 'json'
-# CELERY_TASK_SERIALIZER = 'json'
-# CELERY_RESULT_BACKEND = 'django-db'
-# CELERY_TIMEZONE = 'Asia/Dhaka'
-# CELERY_TASK_REJECT_ON_WORKER_LOST = True  # Retry tasks if a worker crashes
+# CELERY SETTINGS
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_BACKEND = 'django-db'
+CELERY_TIMEZONE = 'Asia/Dhaka'
+CELERY_TASK_REJECT_ON_WORKER_LOST = True  # Retry tasks if a worker crashes
 
 
 
